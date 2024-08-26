@@ -1,0 +1,10 @@
+[package]
+name = "server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = "0.7.5"
+serde = { version = "1.0.209", features = ["derive"] }
+tokio = { version = "1.39.3", features = ["macros", "rt-multi-thread"] }
+tower = "0.5.0"
