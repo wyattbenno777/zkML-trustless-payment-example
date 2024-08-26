@@ -1,4 +1,5 @@
 use reqwest::Result;
+use serde::{Deserialize, Serialize};
 use std::io::Read;
 
 use nova::provider::PallasEngine;
@@ -55,14 +56,56 @@ type S2<E> = RelaxedR1CSSNARK<Dual<E>, EE2<E>>;
 //     Ok(assert!(result))
 // }
 
-fn main() -> Result<()> {
-    let mut res = reqwest::blocking::get("http://127.0.0.1:3000")?;
-    let mut body = String::new();
-    res.read_to_string(&mut body).unwrap();
+#[tokio::main]
+async fn main() -> Result<()> {
+    // // Configure the arguments needed for WASM execution
+    // //
+    // // Here we are configuring the path to the WASM file
+    // let args = WASMArgsBuilder::default()
+    //     .file_path(PathBuf::from("wasm/gradient_boosting.wasm"))
+    //     .invoke(Some(String::from("_start")))
+    //     .build();
+
+    // // Create a WASM execution context for proving.
+    // let mut wasm_ctx = WASMCtx::new_from_file(args)?;
+
+    // // Prove execution and run memory consistency checks
+    // //
+    // // Get proof for verification and corresponding public values
+    // //
+    // // Above type alias's (for the backend config) get used here
+    // let (proof, public_values, _) =
+    //     BatchedZKEProof::<E1, BS1<E1>, S1<E1>, S2<E1>>::prove_wasm(&mut wasm_ctx)?;
+
+    let client = reqwest::Client::new();
+    let url = "http://127.0.0.1:3000/post";
+    let user = CreateUser {
+        username: "test user".to_string(),
+    };
+
+    let res = client
+        .post(url)
+        .header("Content-Type", "application/json")
+        .body(serde_json::to_string(&user).unwrap())
+        .send()
+        .await?;
 
     println!("Status: {}", res.status());
     println!("Headers:\n{:#?}", res.headers());
-    println!("Body:\n{}", body);
+    let body = res.json::<User>().await?;
+    println!("Body:\n{:?}", body);
 
     Ok(())
+}
+
+#[derive(Serialize)]
+struct CreateUser {
+    username: String,
+}
+
+// the output to our `create_user` handler
+#[derive(Deserialize, Debug)]
+struct User {
+    id: u64,
+    username: String,
 }
