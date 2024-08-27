@@ -2,9 +2,14 @@
 name = "server"
 version = "0.1.0"
 edition = "2021"
+default-run = "server"
 
 [dependencies]
 axum = "0.7.5"
 serde = { version = "1.0.209", features = ["derive"] }
 tokio = { version = "1.39.3", features = ["macros", "rt-multi-thread"] }
 tower = "0.5.0"
+nova = { git = "https://github.com/wyattbenno777/arecibo", branch = "wyatt_dev", package = "arecibo" }
+zk-engine = { git = "https://github.com/ICME-Lab/zkEngine_dev", branch = "zkml" }
+anyhow = "1.0"
+serde_json = "1.0"
