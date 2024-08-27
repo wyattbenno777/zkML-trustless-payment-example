@@ -12,7 +12,7 @@ use zk_engine::{
         spartan::{self, snark::RelaxedR1CSSNARK},
         traits::Dual,
     },
-    run::batched::BatchedZKEProof,
+    run::batched::{public_values, BatchedZKEProof},
     traits::zkvm::ZKVM,
     utils::logging::init_logger,
 };
@@ -50,9 +50,9 @@ fn main() {
     let (proof, public_values, _) =
         BatchedZKEProof::<E1, BS1<E1>, S1<E1>, S2<E1>>::prove_wasm(&mut wasm_ctx).unwrap();
 
-    let proof_string = serde_json::to_string(&proof).unwrap();
+    let pp_string = serde_json::to_string(&public_values).unwrap();
     std::fs::create_dir("public_params");
-    save_to_file("public_params/public_params.json", &proof_string);
+    save_to_file("public_params/public_params.json", &pp_string);
 }
 
 fn save_to_file(filename: &str, data: &str) -> anyhow::Result<()> {

@@ -47,6 +47,7 @@ async fn main() -> Result<()> {
     // Get proof for verification and corresponding public values
     //
     // Above type alias's (for the backend config) get used here
+    println!("Building proof");
     let (proof, public_values, _) =
         BatchedZKEProof::<E1, BS1<E1>, S1<E1>, S2<E1>>::prove_wasm(&mut wasm_ctx).unwrap();
 
@@ -58,6 +59,7 @@ async fn main() -> Result<()> {
     //     username: "test user".to_string(),
     // };
 
+    println!("Sending proof to server");
     let res = client
         .post(url)
         .header("Content-Type", "application/json")
@@ -70,7 +72,7 @@ async fn main() -> Result<()> {
     let body = res.json::<VerifyResult>().await?;
     println!("Body:\n{:?}", body);
     if body.success {
-        println!("Successly verified proof!");
+        println!("Successfully verified proof!");
     } else {
         println!("Error verifying proof");
     }

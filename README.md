@@ -13,7 +13,3 @@ When still in server directory: `cargo +nightly run`
 Go to client directory ( `cd ../client` from server directory) then use `cargo +nightly run`.
 
 This will start computing the proof for executing fib.wat file with '10' as input
-
-# Error
-
-Currently seems like I cannot deserialize the public_params json file into a BatchedPublicValues struct in server main.rs

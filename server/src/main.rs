@@ -70,13 +70,29 @@ async fn test_post(
         &public_params_str,
     )
     .unwrap();
+    println!("Proof received, verifying");
+
+    // // Creating the public params by running the proving mechanisms
+    // let args = WASMArgsBuilder::default()
+    //     .file_path(std::path::PathBuf::from("wasm/fib.wat"))
+    //     .invoke(Some(String::from("fib")))
+    //     .func_args(vec![String::from("10")]) // This will generate 16,000 + opcodes
+    //     .build();
+
+    // // Create a WASM execution context for proving.
+    // let mut wasm_ctx = WASMCtx::new_from_file(args).unwrap();
+
+    // let (_, public_params, _) =
+    //     BatchedZKEProof::<E1, BS1<E1>, S1<E1>, S2<E1>>::prove_wasm(&mut wasm_ctx).unwrap();
 
     let result = proof.verify(public_params).unwrap();
 
     let result_json;
     if result {
+        println!("Proof successfully verified");
         result_json = VerifyResult { success: true }
     } else {
+        println!("Error when verifying proof");
         result_json = VerifyResult { success: false }
     }
 
