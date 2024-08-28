@@ -1,4 +1,5 @@
 use std::fs::read_to_string;
+use std::process::Command;
 
 use axum::{
     http::StatusCode,
@@ -38,6 +39,12 @@ struct VerifyResult {
     success: bool,
 }
 
+#[derive(Deserialize)]
+struct Body {
+    proof: BatchedZKEProof<E1, BS1<E1>, S1<E1>, S2<E1>>,
+    recipient_address: String,
+}
+
 #[tokio::main]
 async fn main() {
     // build our application with a route
@@ -62,9 +69,11 @@ async fn root() -> &'static str {
 async fn test_post(
     // this argument tells axum to parse the request body
     // as JSON into a `BatchedZKEProof` type
-    Json(proof): Json<BatchedZKEProof<E1, BS1<E1>, S1<E1>, S2<E1>>>,
+    Json(body): Json<Body>,
 ) -> (StatusCode, Json<VerifyResult>) {
     println!("Proof received, verifying");
+
+    let proof = body.proof;
 
     // Retrieve public params from file
     let public_values = get_public_values();
@@ -75,10 +84,16 @@ async fn test_post(
     let result_json;
     if result {
         println!("Proof successfully verified");
-        result_json = VerifyResult { success: true }
+        result_json = VerifyResult { success: true };
+        println!("Sending USDC");
+        Command::new("node")
+            .arg("send_usdc/send_usdc.js")
+            .arg(&body.recipient_address)
+            .spawn()
+            .expect("Failed to send USDC");
     } else {
         println!("Error when verifying proof");
-        result_json = VerifyResult { success: false }
+        result_json = VerifyResult { success: false };
     }
 
     (StatusCode::CREATED, Json(result_json))

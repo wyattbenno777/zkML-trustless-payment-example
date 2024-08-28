@@ -48,7 +48,6 @@ const contract = new ethers.Contract(tokenAddress, minTokenAbi, provider);
 
 // 6. Input the addresses and the private key; specify number of tokens to send
 const senderAddress = SENDER_ADDRESS;
-const recipientAddress = "0x73987bF167b5cC201cBa676F64d43A063C62018b";
 const senderPrivateKey = SENDER_PRIVATE_KEY;
 
 const usdcAmount = 1.0;
@@ -63,6 +62,9 @@ async function main() {
 
   // 9. Calculate the actual amount in the smallest unit
   const value = ethers.parseUnits(usdcAmount.toString(), decimals);
+
+  var args = process.argv.slice(2);
+  const recipientAddress = args[0];
 
   // 10. Create the transaction
   const tx = await contract
