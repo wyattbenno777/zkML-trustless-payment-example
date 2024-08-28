@@ -42,14 +42,11 @@ fn main() {
     // Create a WASM execution context for proving.
     let mut wasm_ctx = WASMCtx::new_from_file(args).unwrap();
 
-    // Prove execution and run memory consistency checks
-    //
-    // Get proof for verification and corresponding public values
-    //
-    // Above type alias's (for the backend config) get used here
-    let (proof, public_values, _) =
+    // Retrieve the public values from the proving process
+    let (_, public_values, _) =
         BatchedZKEProof::<E1, BS1<E1>, S1<E1>, S2<E1>>::prove_wasm(&mut wasm_ctx).unwrap();
 
+    // Save the public values to a file
     let pp_string = serde_json::to_string(&public_values).unwrap();
     std::fs::create_dir("public_params");
     save_to_file("public_params/public_params.json", &pp_string);

@@ -18,7 +18,6 @@ use zk_engine::{
     },
     run::batched::{public_values::BatchedPublicValues, BatchedZKEProof},
     traits::zkvm::ZKVM,
-    // utils::logging::init_logger,
 };
 
 // Curve cycle to use for proving
@@ -33,11 +32,14 @@ type BS1<E> = spartan::batched::BatchedRelaxedR1CSSNARK<E, EE1<E>>;
 type S1<E> = RelaxedR1CSSNARK<E, EE1<E>>;
 type S2<E> = RelaxedR1CSSNARK<Dual<E>, EE2<E>>;
 
+// the output containing verification result
+#[derive(Serialize)]
+struct VerifyResult {
+    success: bool,
+}
+
 #[tokio::main]
 async fn main() {
-    // // initialize tracing
-    // tracing_subscriber::fmt::init();
-
     // build our application with a route
     let app = Router::new()
         // `GET /` goes to `root`
@@ -59,33 +61,16 @@ async fn root() -> &'static str {
 
 async fn test_post(
     // this argument tells axum to parse the request body
-    // as JSON into a `CreateUser` type
+    // as JSON into a `BatchedZKEProof` type
     Json(proof): Json<BatchedZKEProof<E1, BS1<E1>, S1<E1>, S2<E1>>>,
 ) -> (StatusCode, Json<VerifyResult>) {
-    // insert your application logic here
-
-    let public_params_str = read_to_string("public_params/public_params.json").unwrap();
-
-    let public_params = serde_json::from_str::<BatchedPublicValues<E1, BS1<E1>, S1<E1>, S2<E1>>>(
-        &public_params_str,
-    )
-    .unwrap();
     println!("Proof received, verifying");
 
-    // // Creating the public params by running the proving mechanisms
-    // let args = WASMArgsBuilder::default()
-    //     .file_path(std::path::PathBuf::from("wasm/fib.wat"))
-    //     .invoke(Some(String::from("fib")))
-    //     .func_args(vec![String::from("10")]) // This will generate 16,000 + opcodes
-    //     .build();
+    // Retrieve public params from file
+    let public_values = get_public_values();
 
-    // // Create a WASM execution context for proving.
-    // let mut wasm_ctx = WASMCtx::new_from_file(args).unwrap();
-
-    // let (_, public_params, _) =
-    //     BatchedZKEProof::<E1, BS1<E1>, S1<E1>, S2<E1>>::prove_wasm(&mut wasm_ctx).unwrap();
-
-    let result = proof.verify(public_params).unwrap();
+    // Verify the proof
+    let result = proof.verify(public_values).unwrap();
 
     let result_json;
     if result {
@@ -99,8 +84,15 @@ async fn test_post(
     (StatusCode::CREATED, Json(result_json))
 }
 
-// the output to our `create_user` handler
-#[derive(Serialize)]
-struct VerifyResult {
-    success: bool,
+fn get_public_values() -> BatchedPublicValues<E1, BS1<E1>, S1<E1>, S2<E1>> {
+    let public_values_str = read_to_string("public_params/public_params.json").unwrap();
+
+    match serde_json::from_str::<BatchedPublicValues<E1, BS1<E1>, S1<E1>, S2<E1>>>(
+        &public_values_str,
+    ) {
+        Ok(public_values) => public_values,
+        Err(e) => {
+            panic!("Error when deserializing public params: {}", e);
+        }
+    }
 }

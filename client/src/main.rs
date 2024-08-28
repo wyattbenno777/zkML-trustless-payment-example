@@ -42,22 +42,12 @@ async fn main() -> Result<()> {
     // Create a WASM execution context for proving.
     let mut wasm_ctx = WASMCtx::new_from_file(args).unwrap();
 
-    // Prove execution and run memory consistency checks
-    //
-    // Get proof for verification and corresponding public values
-    //
-    // Above type alias's (for the backend config) get used here
     println!("Building proof");
     let (proof, public_values, _) =
         BatchedZKEProof::<E1, BS1<E1>, S1<E1>, S2<E1>>::prove_wasm(&mut wasm_ctx).unwrap();
 
     let client = reqwest::Client::new();
     let url = "http://127.0.0.1:3000/post";
-
-    // // The struct to be sent by post to server
-    // let user = CreateUser {
-    //     username: "test user".to_string(),
-    // };
 
     println!("Sending proof to server");
     let res = client
@@ -80,7 +70,7 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-// the output to our `create_user` handler
+// the output of verification process
 #[derive(Deserialize, Debug)]
 struct VerifyResult {
     success: bool,
