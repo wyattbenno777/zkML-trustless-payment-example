@@ -17,3 +17,6 @@ dotenv = "0.15.0"
 log = "0.4.20"
 uuid = { version = "1.6.1", features = ["v4", "serde"] }
 env_logger = "0.11.5"
+secp256k1 = "0.21.0"
+web3 = "0.18.0"
+alloy = "0.3.0"
