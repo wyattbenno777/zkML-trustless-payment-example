@@ -30,13 +30,14 @@ type S2<E> = RelaxedR1CSSNARK<Dual<E>, EE2<E>>;
 
 const RECIPIENT_ADDRESS: &str = "0x73987bF167b5cC201cBa676F64d43A063C62018b";
 
+// The input struct sent to the server
 #[derive(Serialize)]
 struct Body {
     proof: BatchedZKEProof<E1, BS1<E1>, S1<E1>, S2<E1>>,
     recipient_address: String,
 }
 
-// the output of verification process
+// the output of verification process, received from the server
 #[derive(Deserialize, Debug)]
 struct VerifyResult {
     failure_reason: Option<String>,
@@ -44,13 +45,14 @@ struct VerifyResult {
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    init_logger();
     // Configure the arguments needed for WASM execution
     //
     // Here we are configuring the path to the WASM file
     let args = WASMArgsBuilder::default()
         .file_path(PathBuf::from("wasm/fib.wat"))
         .invoke(Some(String::from("fib")))
-        .func_args(vec![String::from("10")]) // This will generate 16,000 + opcodes
+        .func_args(vec![String::from("10")])
         .build();
 
     // Create a WASM execution context for proving.
@@ -63,11 +65,13 @@ async fn main() -> Result<()> {
     let client = reqwest::Client::new();
     let url = "http://127.0.0.1:3000/post";
 
+    // Create a Body struct to send to the server
     let body = Body {
         proof,
-        recipient_address: "".to_string(),
+        recipient_address: RECIPIENT_ADDRESS.to_string(),
     };
 
+    // Send the Body struct containing proof to the sever
     println!("Sending proof to server");
     let res = client
         .post(url)
@@ -76,8 +80,8 @@ async fn main() -> Result<()> {
         .send()
         .await?;
 
-    println!("Status: {}", res.status());
-    println!("Headers:\n{:#?}", res.headers());
+    // Parse the response into a VerifyResult struct,
+    // Similar to the one defined and sent in the server
     let body = res.json::<VerifyResult>().await?;
     match body.failure_reason {
         Some(reason) => println!(

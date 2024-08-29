@@ -19,6 +19,7 @@ use zk_engine::{
     },
     run::batched::{public_values::BatchedPublicValues, BatchedZKEProof},
     traits::zkvm::ZKVM,
+    utils::logging::init_logger,
 };
 
 // Curve cycle to use for proving
@@ -48,6 +49,7 @@ struct Body {
 
 #[tokio::main]
 async fn main() {
+    init_logger();
     // build our application with a route
     let app = Router::new()
         // `GET /` goes to `root`
@@ -69,51 +71,53 @@ async fn root() -> &'static str {
 
 async fn test_post(
     // this argument tells axum to parse the request body
-    // as JSON into a `BatchedZKEProof` type
+    // as JSON into a `Body` type, similar to the type declared and sent in client code
     Json(body): Json<Body>,
 ) -> (StatusCode, Json<VerifyResult>) {
     println!("Proof received, verifying");
 
     let proof = body.proof;
+    let recipient_address = body.recipient_address;
 
     // Retrieve public params from file
     let public_values = get_public_values();
 
     // Verify the proof
-    let result = proof.verify(public_values).unwrap();
+    let is_proof_valid = proof.verify(public_values).unwrap();
 
-    let result_json;
-    if result {
-        println!("Proof successfully verified");
-        println!("Sending USDC");
-        let output = send_money(&body.recipient_address, SEND_AMOUNT);
-
-        if output.status.success() {
-            println!("USDC sent successfully");
-            result_json = VerifyResult {
-                failure_reason: None,
-            };
-        } else {
-            println!(
-                "Error when sending USDC: {:?}",
-                String::from_utf8(output.stderr)
-            );
-            result_json = VerifyResult {
-                failure_reason: Some(
-                    "Could not send USDC: ".to_string()
-                        + &String::from_utf8(output.stderr).unwrap(),
-                ),
-            };
-        }
-    } else {
+    if !is_proof_valid {
         println!("Error when verifying proof");
-        result_json = VerifyResult {
+        let result_json = VerifyResult {
             failure_reason: Some("Proof verification failed".to_string()),
         };
+        return (StatusCode::BAD_REQUEST, Json(result_json));
     }
+
+    println!("Proof successfully verified");
+    println!("Sending USDC");
+    let output = send_money(&recipient_address, SEND_AMOUNT);
+
+    if !output.status.success() {
+        println!("Error when sending USDC: {:?}", output);
+        let result_json = VerifyResult {
+            failure_reason: Some(
+                "Could not send USDC: ".to_string() + &String::from_utf8(output.stderr).unwrap(),
+            ),
+        };
+        return (StatusCode::INTERNAL_SERVER_ERROR, Json(result_json));
+    }
+
+    println!("USDC sent successfully");
+    let result_json = VerifyResult {
+        failure_reason: None,
+    };
+
     (StatusCode::CREATED, Json(result_json))
 }
 
+/**
+ * Gets and returns the public values object from the file generated during server setup
+ */
 fn get_public_values() -> BatchedPublicValues<E1, BS1<E1>, S1<E1>, S2<E1>> {
     let public_values_str = read_to_string("public_values/public_values.json").unwrap();
 
@@ -127,6 +131,9 @@ fn get_public_values() -> BatchedPublicValues<E1, BS1<E1>, S1<E1>, S2<E1>> {
     }
 }
 
+/**
+ * Runs a bash command to start a js script to send USDC to the recipient
+ */
 fn send_money(recipient_address: &String, amount: u32) -> std::process::Output {
     Command::new("node")
         .arg("send_usdc/send_usdc.js")
