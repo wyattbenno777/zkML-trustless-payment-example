@@ -10,10 +10,9 @@ serde = { version = "1.0.209", features = ["derive"] }
 tokio = { version = "1.39.3", features = ["macros", "rt-multi-thread"] }
 tower = "0.5.0"
 nova = { git = "https://github.com/wyattbenno777/arecibo", branch = "wyatt_dev", package = "arecibo" }
-zk-engine = { git = "https://github.com/ICME-Lab/zkEngine_dev", branch = "zkml" }
+zk-engine = { git = "https://github.com/ICME-Lab/zkEngine_dev", branch = "fix/gradient_boosting_1" }
 anyhow = "1.0"
 serde_json = "1.0"
-circle_api = { git = "https://github.com/sssemil/circle_api/", branch = "main" }
 dotenv = "0.15.0"
 log = "0.4.20"
 uuid = { version = "1.6.1", features = ["v4", "serde"] }

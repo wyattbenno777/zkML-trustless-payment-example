@@ -29,7 +29,7 @@ type BS1<E> = spartan::batched::BatchedRelaxedR1CSSNARK<E, EE1<E>>;
 type S1<E> = RelaxedR1CSSNARK<E, EE1<E>>;
 type S2<E> = RelaxedR1CSSNARK<Dual<E>, EE2<E>>;
 
-fn main() {
+fn main() -> anyhow::Result<()> {
     // Configure the arguments needed for WASM execution
     //
     // Here we are configuring the path to the WASM file
@@ -40,16 +40,23 @@ fn main() {
         .build();
 
     // Create a WASM execution context for proving.
-    let mut wasm_ctx = WASMCtx::new_from_file(args).unwrap();
+    let mut wasm_ctx = WASMCtx::new_from_file(&args)?;
 
+    let pp = BatchedZKEProof::setup(&mut wasm_ctx)?;
+
+    let mut wasm_ctx = WASMCtx::new_from_file(&args)?;
     // Retrieve the public values from the proving process
     let (_, public_values, _) =
-        BatchedZKEProof::<E1, BS1<E1>, S1<E1>, S2<E1>>::prove_wasm(&mut wasm_ctx).unwrap();
+        BatchedZKEProof::<E1, BS1<E1>, S1<E1>, S2<E1>>::prove_wasm(&mut wasm_ctx, &pp)?;
 
     // Save the public values to a file
-    let pp_string = serde_json::to_string(&public_values).unwrap();
     std::fs::create_dir("public_values");
-    save_to_file("public_values/public_values.json", &pp_string);
+    let public_values_str = serde_json::to_string(&public_values)?;
+    let pp_string = serde_json::to_string(&pp)?;
+    save_to_file("public_values/public_values.json", &public_values_str);
+    save_to_file("public_values/pp.json", &pp_string);
+
+    Ok(())
 }
 
 fn save_to_file(filename: &str, data: &str) -> anyhow::Result<()> {

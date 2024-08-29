@@ -17,7 +17,7 @@ use zk_engine::{
         spartan::{self, snark::RelaxedR1CSSNARK},
         traits::Dual,
     },
-    run::batched::{public_values::BatchedPublicValues, BatchedZKEProof},
+    run::batched::{public_values::BatchedPublicValues, BatchedZKEProof, BatchedZKEPublicParams},
     traits::zkvm::ZKVM,
     utils::logging::init_logger,
 };
@@ -81,9 +81,10 @@ async fn test_post(
 
     // Retrieve public params from file
     let public_values = get_public_values();
+    let pp = get_pp();
 
     // Verify the proof
-    let is_proof_valid = proof.verify(public_values).unwrap();
+    let is_proof_valid = proof.verify(public_values, &pp).unwrap();
 
     if !is_proof_valid {
         println!("Error when verifying proof");
@@ -118,15 +119,24 @@ async fn test_post(
 /**
  * Gets and returns the public values object from the file generated during server setup
  */
-fn get_public_values() -> BatchedPublicValues<E1, BS1<E1>, S1<E1>, S2<E1>> {
+fn get_public_values() -> BatchedPublicValues<E1> {
     let public_values_str = read_to_string("public_values/public_values.json").unwrap();
 
-    match serde_json::from_str::<BatchedPublicValues<E1, BS1<E1>, S1<E1>, S2<E1>>>(
-        &public_values_str,
-    ) {
+    match serde_json::from_str::<BatchedPublicValues<E1>>(&public_values_str) {
         Ok(public_values) => public_values,
         Err(e) => {
             panic!("Error when deserializing public values: {}", e);
+        }
+    }
+}
+
+fn get_pp() -> BatchedZKEPublicParams<E1, BS1<E1>, S1<E1>, S2<E1>> {
+    let pp_str = read_to_string("public_values/pp.json").unwrap();
+
+    match serde_json::from_str::<BatchedZKEPublicParams<E1, BS1<E1>, S1<E1>, S2<E1>>>(&pp_str) {
+        Ok(pp) => pp,
+        Err(e) => {
+            panic!("Error when deserializing public params: {}", e);
         }
     }
 }

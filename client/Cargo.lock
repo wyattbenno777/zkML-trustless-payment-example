@@ -2824,7 +2824,7 @@ dependencies = [
 [[package]]
 name = "wasmi"
 version = "0.31.0"
-source = "git+https://github.com/ICME-Lab/zkEngine_dev?branch=zkml#496c0dbec008170a10903c745df5997f02537b4f"
+source = "git+https://github.com/ICME-Lab/zkEngine_dev?branch=fix/gradient_boosting_1#6132d58f25fc9df964bd4390e6a2e7c090c01173"
 dependencies = [
  "anyhow",
  "multi-stash",
@@ -2834,6 +2834,7 @@ dependencies = [
  "sha256",
  "smallvec",
  "spin",
+ "tracing",
  "wasmi_arena",
  "wasmi_core",
  "wasmparser-nostd",
@@ -2843,12 +2844,12 @@ dependencies = [
 [[package]]
 name = "wasmi_arena"
 version = "0.4.0"
-source = "git+https://github.com/ICME-Lab/zkEngine_dev?branch=zkml#496c0dbec008170a10903c745df5997f02537b4f"
+source = "git+https://github.com/ICME-Lab/zkEngine_dev?branch=fix/gradient_boosting_1#6132d58f25fc9df964bd4390e6a2e7c090c01173"
 
 [[package]]
 name = "wasmi_core"
 version = "0.13.0"
-source = "git+https://github.com/ICME-Lab/zkEngine_dev?branch=zkml#496c0dbec008170a10903c745df5997f02537b4f"
+source = "git+https://github.com/ICME-Lab/zkEngine_dev?branch=fix/gradient_boosting_1#6132d58f25fc9df964bd4390e6a2e7c090c01173"
 dependencies = [
  "downcast-rs",
  "libm",
@@ -2860,7 +2861,7 @@ dependencies = [
 [[package]]
 name = "wasmi_wasi"
 version = "0.31.0"
-source = "git+https://github.com/ICME-Lab/zkEngine_dev?branch=zkml#496c0dbec008170a10903c745df5997f02537b4f"
+source = "git+https://github.com/ICME-Lab/zkEngine_dev?branch=fix/gradient_boosting_1#6132d58f25fc9df964bd4390e6a2e7c090c01173"
 dependencies = [
  "wasi-cap-std-sync",
  "wasi-common",
@@ -3291,7 +3292,7 @@ dependencies = [
 [[package]]
 name = "zk-engine"
 version = "0.1.0"
-source = "git+https://github.com/ICME-Lab/zkEngine_dev?branch=zkml#496c0dbec008170a10903c745df5997f02537b4f"
+source = "git+https://github.com/ICME-Lab/zkEngine_dev?branch=fix/gradient_boosting_1#6132d58f25fc9df964bd4390e6a2e7c090c01173"
 dependencies = [
  "anyhow",
  "arecibo",

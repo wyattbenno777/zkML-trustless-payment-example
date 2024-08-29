@@ -1,4 +1,4 @@
-use reqwest::Result;
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 use nova::provider::PallasEngine;
@@ -56,11 +56,12 @@ async fn main() -> Result<()> {
         .build();
 
     // Create a WASM execution context for proving.
-    let mut wasm_ctx = WASMCtx::new_from_file(args).unwrap();
+    let mut wasm_ctx = WASMCtx::new_from_file(&args).unwrap();
 
     println!("Building proof");
-    let (proof, _, _) =
-        BatchedZKEProof::<E1, BS1<E1>, S1<E1>, S2<E1>>::prove_wasm(&mut wasm_ctx).unwrap();
+    let pp = BatchedZKEProof::setup(&mut wasm_ctx)?;
+    let mut wasm_ctx = WASMCtx::new_from_file(&args).unwrap();
+    let (proof, _, _) = BatchedZKEProof::prove_wasm(&mut wasm_ctx, &pp).unwrap();
 
     let client = reqwest::Client::new();
     let url = "http://127.0.0.1:3000/post";
