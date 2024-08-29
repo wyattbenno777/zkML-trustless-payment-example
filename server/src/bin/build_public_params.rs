@@ -48,8 +48,8 @@ fn main() {
 
     // Save the public values to a file
     let pp_string = serde_json::to_string(&public_values).unwrap();
-    std::fs::create_dir("public_params");
-    save_to_file("public_params/public_params.json", &pp_string);
+    std::fs::create_dir("public_values");
+    save_to_file("public_values/public_values.json", &pp_string);
 }
 
 fn save_to_file(filename: &str, data: &str) -> anyhow::Result<()> {

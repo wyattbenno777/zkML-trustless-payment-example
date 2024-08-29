@@ -29,6 +29,19 @@ type S1<E> = RelaxedR1CSSNARK<E, EE1<E>>;
 type S2<E> = RelaxedR1CSSNARK<Dual<E>, EE2<E>>;
 
 const RECIPIENT_ADDRESS: &str = "0x73987bF167b5cC201cBa676F64d43A063C62018b";
+
+#[derive(Serialize)]
+struct Body {
+    proof: BatchedZKEProof<E1, BS1<E1>, S1<E1>, S2<E1>>,
+    recipient_address: String,
+}
+
+// the output of verification process
+#[derive(Deserialize, Debug)]
+struct VerifyResult {
+    failure_reason: Option<String>,
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     // Configure the arguments needed for WASM execution
@@ -52,7 +65,7 @@ async fn main() -> Result<()> {
 
     let body = Body {
         proof,
-        recipient_address: RECIPIENT_ADDRESS.to_string(),
+        recipient_address: "".to_string(),
     };
 
     println!("Sending proof to server");
@@ -66,24 +79,13 @@ async fn main() -> Result<()> {
     println!("Status: {}", res.status());
     println!("Headers:\n{:#?}", res.headers());
     let body = res.json::<VerifyResult>().await?;
-    println!("Body:\n{:?}", body);
-    if body.success {
-        println!("Successfully verified proof!");
-    } else {
-        println!("Error verifying proof");
+    match body.failure_reason {
+        Some(reason) => println!(
+            "Error when verifying proof and processing payment: {}",
+            reason
+        ),
+        None => println!("Proof successfully verified and payment processed"),
     }
 
     Ok(())
-}
-
-#[derive(Serialize)]
-struct Body {
-    proof: BatchedZKEProof<E1, BS1<E1>, S1<E1>, S2<E1>>,
-    recipient_address: String,
-}
-
-// the output of verification process
-#[derive(Deserialize, Debug)]
-struct VerifyResult {
-    success: bool,
 }

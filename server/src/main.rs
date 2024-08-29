@@ -33,10 +33,11 @@ type BS1<E> = spartan::batched::BatchedRelaxedR1CSSNARK<E, EE1<E>>;
 type S1<E> = RelaxedR1CSSNARK<E, EE1<E>>;
 type S2<E> = RelaxedR1CSSNARK<Dual<E>, EE2<E>>;
 
+const SEND_AMOUNT: u32 = 1;
 // the output containing verification result
 #[derive(Serialize)]
 struct VerifyResult {
-    success: bool,
+    failure_reason: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -84,30 +85,53 @@ async fn test_post(
     let result_json;
     if result {
         println!("Proof successfully verified");
-        result_json = VerifyResult { success: true };
         println!("Sending USDC");
-        Command::new("node")
-            .arg("send_usdc/send_usdc.js")
-            .arg(&body.recipient_address)
-            .spawn()
-            .expect("Failed to send USDC");
+        let output = send_money(&body.recipient_address, SEND_AMOUNT);
+
+        if output.status.success() {
+            println!("USDC sent successfully");
+            result_json = VerifyResult {
+                failure_reason: None,
+            };
+        } else {
+            println!(
+                "Error when sending USDC: {:?}",
+                String::from_utf8(output.stderr)
+            );
+            result_json = VerifyResult {
+                failure_reason: Some(
+                    "Could not send USDC: ".to_string()
+                        + &String::from_utf8(output.stderr).unwrap(),
+                ),
+            };
+        }
     } else {
         println!("Error when verifying proof");
-        result_json = VerifyResult { success: false };
+        result_json = VerifyResult {
+            failure_reason: Some("Proof verification failed".to_string()),
+        };
     }
-
     (StatusCode::CREATED, Json(result_json))
 }
 
 fn get_public_values() -> BatchedPublicValues<E1, BS1<E1>, S1<E1>, S2<E1>> {
-    let public_values_str = read_to_string("public_params/public_params.json").unwrap();
+    let public_values_str = read_to_string("public_values/public_values.json").unwrap();
 
     match serde_json::from_str::<BatchedPublicValues<E1, BS1<E1>, S1<E1>, S2<E1>>>(
         &public_values_str,
     ) {
         Ok(public_values) => public_values,
         Err(e) => {
-            panic!("Error when deserializing public params: {}", e);
+            panic!("Error when deserializing public values: {}", e);
         }
     }
+}
+
+fn send_money(recipient_address: &String, amount: u32) -> std::process::Output {
+    Command::new("node")
+        .arg("send_usdc/send_usdc.js")
+        .arg(recipient_address)
+        .arg(amount.to_string())
+        .output()
+        .expect("Failed to send USDC")
 }

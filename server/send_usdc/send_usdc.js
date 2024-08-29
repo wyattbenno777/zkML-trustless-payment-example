@@ -50,9 +50,12 @@ const contract = new ethers.Contract(tokenAddress, minTokenAbi, provider);
 const senderAddress = SENDER_ADDRESS;
 const senderPrivateKey = SENDER_PRIVATE_KEY;
 
-const usdcAmount = 1.0;
-
 async function main() {
+  // recover the recipient address and the amount of USDC to send from the command line
+  var args = process.argv.slice(2);
+  const recipientAddress = args[0];
+  const usdcAmount = args[1];
+
   // 7. Check the number of decimals for the USDC token
   const decimals = await contract.decimals();
 
@@ -61,10 +64,7 @@ async function main() {
   console.log("Sender USDC balance:", ethers.formatUnits(balance, decimals));
 
   // 9. Calculate the actual amount in the smallest unit
-  const value = ethers.parseUnits(usdcAmount.toString(), decimals);
-
-  var args = process.argv.slice(2);
-  const recipientAddress = args[0];
+  const value = ethers.parseUnits(usdcAmount, decimals);
 
   // 10. Create the transaction
   const tx = await contract
