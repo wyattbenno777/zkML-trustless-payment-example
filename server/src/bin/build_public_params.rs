@@ -34,9 +34,8 @@ fn main() -> anyhow::Result<()> {
     //
     // Here we are configuring the path to the WASM file
     let args = WASMArgsBuilder::default()
-        .file_path(PathBuf::from("wasm/fib.wat"))
-        .invoke(Some(String::from("fib")))
-        .func_args(vec![String::from("10")]) // This will generate 16,000 + opcodes
+        .file_path(PathBuf::from("wasm/gradient_boosting.wasm"))
+        .invoke(Some(String::from("_start")))
         .build();
 
     // Create a WASM execution context for proving.
@@ -53,8 +52,8 @@ fn main() -> anyhow::Result<()> {
     std::fs::create_dir("public_values");
     let public_values_str = serde_json::to_string(&public_values)?;
     let pp_string = serde_json::to_string(&pp)?;
-    save_to_file("public_values/public_values.json", &public_values_str);
-    save_to_file("public_values/pp.json", &pp_string);
+    save_to_file("public_values/public_values.json", &public_values_str)?;
+    save_to_file("public_values/pp.json", &pp_string)?;
 
     Ok(())
 }
