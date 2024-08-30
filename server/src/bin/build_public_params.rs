@@ -15,6 +15,7 @@ use zk_engine::{
     run::batched::{public_values, BatchedZKEProof},
     traits::zkvm::ZKVM,
     utils::logging::init_logger,
+    TraceSliceValues,
 };
 
 // Curve cycle to use for proving
@@ -36,6 +37,7 @@ fn main() -> anyhow::Result<()> {
     let args = WASMArgsBuilder::default()
         .file_path(PathBuf::from("wasm/gradient_boosting.wasm"))
         .invoke(Some(String::from("_start")))
+        .trace_slice_values(TraceSliceValues::new(0, 100000))
         .build();
 
     // Create a WASM execution context for proving.
