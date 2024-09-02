@@ -50,7 +50,7 @@ fn main() -> anyhow::Result<()> {
     let (_, public_values, _) =
         BatchedZKEProof::<E1, BS1<E1>, S1<E1>, S2<E1>>::prove_wasm(&mut wasm_ctx, &pp)?;
 
-    // Save the public values to a file
+    // Save the public values and params to files
     std::fs::create_dir("public_values");
     let public_values_str = serde_json::to_string(&public_values)?;
     let pp_string = serde_json::to_string(&pp)?;
