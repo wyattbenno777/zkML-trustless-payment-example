@@ -46,13 +46,24 @@ struct VerifyResult {
 #[tokio::main]
 async fn main() -> Result<()> {
     init_logger();
+
+    // Create a reqwest client to send requests to the server
+    let client = reqwest::Client::new();
+
+    // get information from the server
+    let url = "http://127.0.0.1:3000/";
+    let res = client.get(url).send().await?;
+    let body = res.text().await?;
+    println!("{}", body);
+    println!("------------------------------ ");
+
     // Configure the arguments needed for WASM execution
     //
     // Here we are configuring the path to the WASM file
     let args = WASMArgsBuilder::default()
-        .file_path(PathBuf::from("wasm/fib.wat"))
-        .invoke(Some(String::from("fib")))
-        .func_args(vec![String::from("10")])
+        .file_path(PathBuf::from("wasm/gradient_boosting.wasm"))
+        .invoke(Some(String::from("_start")))
+        .trace_slice_values(TraceSliceValues::new(0, 100000))
         .build();
 
     // Create a WASM execution context for proving.
@@ -63,16 +74,15 @@ async fn main() -> Result<()> {
     let mut wasm_ctx = WASMCtx::new_from_file(&args).unwrap();
     let (proof, _, _) = BatchedZKEProof::prove_wasm(&mut wasm_ctx, &pp).unwrap();
 
-    let client = reqwest::Client::new();
+    // Send the proof to the server
     let url = "http://127.0.0.1:3000/post";
 
-    // Create a Body struct to send to the server
+    // Create a Body struct containing the proof, to send to the server
     let body = Body {
         proof,
         recipient_address: RECIPIENT_ADDRESS.to_string(),
     };
 
-    // Send the Body struct containing proof to the sever
     println!("Sending proof to server");
     let res = client
         .post(url)
@@ -82,7 +92,7 @@ async fn main() -> Result<()> {
         .await?;
 
     // Parse the response into a VerifyResult struct,
-    // Similar to the one defined and sent in the server
+    // Similar to the one defined and sent by the server
     let body = res.json::<VerifyResult>().await?;
     match body.failure_reason {
         Some(reason) => println!(
