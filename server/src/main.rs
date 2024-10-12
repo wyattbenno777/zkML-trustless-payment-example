@@ -38,7 +38,7 @@ type S1<E> = RelaxedR1CSSNARK<E, EE1<E>>;
 type S2<E> = RelaxedR1CSSNARK<Dual<E>, EE2<E>>;
 
 // Quantity to send for recieving valid proof
-const SEND_AMOUNT: u32 = 100;
+const SEND_AMOUNT: u32 = 1;
 const USDC_ABI: &[u8] = include_bytes!("../usdc_abi/usdc_abi.json");
 
 // the output containing verification result
@@ -68,6 +68,7 @@ async fn main() {
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
         .await
         .unwrap();
+    println!("Listening on: {}", listener.local_addr().unwrap());
     axum::serve(listener, app).await.unwrap();
 }
 

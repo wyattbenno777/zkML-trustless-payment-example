@@ -1,4 +1,3 @@
-use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::Write;
 
@@ -12,7 +11,7 @@ use zk_engine::{
         spartan::{self, snark::RelaxedR1CSSNARK},
         traits::Dual,
     },
-    run::batched::{public_values, BatchedZKEProof},
+    run::batched::BatchedZKEProof,
     traits::zkvm::ZKVM,
     utils::logging::init_logger,
     TraceSliceValues,
@@ -31,13 +30,14 @@ type S1<E> = RelaxedR1CSSNARK<E, EE1<E>>;
 type S2<E> = RelaxedR1CSSNARK<Dual<E>, EE2<E>>;
 
 fn main() -> anyhow::Result<()> {
+    init_logger();
     // Configure the arguments needed for WASM execution
     //
     // Here we are configuring the path to the WASM file
     let args = WASMArgsBuilder::default()
         .file_path(PathBuf::from("wasm/gradient_boosting.wasm"))
         .invoke(Some(String::from("_start")))
-        .trace_slice_values(TraceSliceValues::new(0, 100000))
+        .trace_slice_values(TraceSliceValues::new(0, 10000))
         .build();
 
     // Create a WASM execution context for proving.
@@ -51,7 +51,8 @@ fn main() -> anyhow::Result<()> {
         BatchedZKEProof::<E1, BS1<E1>, S1<E1>, S2<E1>>::prove_wasm(&mut wasm_ctx, &pp)?;
 
     // Save the public values and params to files
-    std::fs::create_dir("public_values");
+    let _ = std::fs::create_dir("public_values");
+
     let public_values_str = serde_json::to_string(&public_values)?;
     let pp_string = serde_json::to_string(&pp)?;
     save_to_file("public_values/public_values.json", &public_values_str)?;
